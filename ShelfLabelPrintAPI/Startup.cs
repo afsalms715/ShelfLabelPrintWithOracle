@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ShelfLabelPrintAPI.Services;
 
+
 namespace ShelfLabelPrintAPI
 {
     public class Startup
@@ -27,10 +28,13 @@ namespace ShelfLabelPrintAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers();
-            string connectionString = Configuration.GetConnectionString("OracleConnection");
-            services.AddScoped<ProductDtlService>(provider => new ProductDtlService(connectionString));
+            string connectionString = Configuration.GetConnectionString("OracleConnection");          
+            services.AddScoped<ProductDtlService>(provider =>
+            {
+                // Create and return the ProductDtlService instance
+                return new ProductDtlService(connectionString);
+            });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ShelfLabelPrintAPI", Version = "v1" });
@@ -39,9 +43,10 @@ namespace ShelfLabelPrintAPI
             {
                 options.AddPolicy("MyCorePolicy", builder =>
                 {
-                    builder.WithOrigins("http://localhost:5501").AllowAnyMethod().AllowAnyHeader();
+                    builder.WithOrigins("http://localhost:5501", "http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
                 });
             });
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

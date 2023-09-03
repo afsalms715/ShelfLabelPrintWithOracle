@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,9 @@ using System.Threading.Tasks;
 using ShelfLabelPrintAPI.Services;
 using ShelfLabelPrintAPI.Models;
 using Microsoft.AspNetCore.Cors;
+using System.IO;
+using System.Text.Json;
+
 
 namespace ShelfLabelPrintAPI.Controllers
 {
@@ -16,16 +20,37 @@ namespace ShelfLabelPrintAPI.Controllers
     public class ProductDtlController : ControllerBase
     {
         private readonly ProductDtlService _productService;
-        public ProductDtlController(ProductDtlService productService)
+
+        public IWebHostEnvironment WebHostEnvironment;
+        public ProductDtlController(ProductDtlService productService, IWebHostEnvironment WebHostEnvironment)
         {
             _productService = productService;
+            this.WebHostEnvironment = WebHostEnvironment;
         }
         [Route("product")]       
         [HttpGet]
-        public ProductDtl Get(string barcode,string loc)
+        public ActionResult<ProductDtl> Get(string barcode,string loc)
         {
-            var result= _productService.GetProduct(barcode, loc);
+            if (barcode == "" ||barcode.Length<4 || loc == "")
+            {
+                return BadRequest();
+            }
+                var result = _productService.GetProduct(barcode, loc);
+                if (result.Su_desc == null)
+                {
+                    return NotFound();
+                }
+            
             return result;
         }
-    }
+
+        [Route("productmaster")]
+        [HttpGet]
+        public IEnumerable<ProductDtl> GetProducts()
+        {
+            var results = _productService.GetProducts();
+            return results;
+        }
+
+        }
 }
